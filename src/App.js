@@ -1,23 +1,68 @@
-import logo from './logo.svg';
-import './App.css';
+import React, {useState, useEffect} from 'react';
+import Header from './componentes/Header';
+import Todo from "./componentes/Todo";
+import './index.css';
 
 function App() {
+  //STATE
+  const [todoList, setTodoList] = useState([]);
+
+  useEffect(() => {
+    mostrarTodos();
+  },[]);
+
+  const obtenerLosTodos = async () => {
+    let todos = await fetch('https://jsonplaceholder.typicode.com/todos').then(response => response.json()); 
+    return todos;
+  };
+
+  const mostrarTodos = async () => {
+    let todos = await obtenerLosTodos();
+    setTodoList([...todos]);
+  };
+
+
+
+  const mostrarSoloLosPendientes = async () => {
+    let todos = await obtenerLosTodos();
+    setTodoList([...todos.filter(todo => !todo.completed)]);
+  };
+
+  const mostrarSoloLosAcompletados = async () => {
+    let todos = await obtenerLosTodos();
+    setTodoList([...todos.filter(todo => todo.completed)]);
+  };
+
+  const cambiarElEstadoDelTodo = (id) => {
+    setTodoList([...todoList.map(todo => todo.id === id ? {...todo, completed: !todo.completed} : todo)]);
+  };
+  //FUNCIONES
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Header 
+        cantidad={todoList.length}
+        className="Header" 
+        mostrarTodos={mostrarTodos}
+        mostrarSoloLosPendientes={mostrarSoloLosPendientes}
+        mostrarSoloLosAcompletados={mostrarSoloLosAcompletados}
+        />
+
+      <div className="todoContainer">
+      { 
+        todoList?.map(todo =>(
+            <Todo
+                key={todo.id}
+                title={todo.title}
+                completed={todo.completed}
+                id={todo.id}
+                cambiarElEstadoDelTodo={cambiarElEstadoDelTodo}
+            />
+        ))
+      }
+      </div>
+
+
     </div>
   );
 }
